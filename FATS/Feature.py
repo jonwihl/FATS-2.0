@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from . import featureFunction
+from FATS import featureFunction
 
 
 class FeatureSpace:

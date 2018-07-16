@@ -967,7 +967,7 @@ class CAR_sigma(Base):
     def calculateCAR(self, time, data, error):
 
         x0 = [10, 0.5]
-        bnds = ((0, 100), (0, 100))
+        bnds = ((0, 100), (0.0001, 100))
 
         res = minimize(self.CAR_Lik, x0, args=(time, data, error),
                        method='L-BFGS-B', bounds=bnds)

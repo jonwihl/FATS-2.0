@@ -322,7 +322,7 @@ def test_Std(white_noise):
     assert (a.result(method='array') >= 0.9 and a.result(method='array') <= 1.1)
 
 
-def test_Stetson(white_noise):
+ def test_Stetson(white_noise):
     # data, mjd, error, second_data, aligned_data, aligned_second_data, aligned_mjd = white_noise()
 
     a = FeatureSpace(featureList=['SlottedA_length', 'StetsonK', 'StetsonK_AC', 'StetsonJ', 'StetsonL'])
