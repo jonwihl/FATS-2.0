@@ -630,7 +630,7 @@ class FluxPercentileRatioMid80(Base):
         F_10_index = math.ceil(0.10 * lc_length)
         F_90_index = math.ceil(0.90 * lc_length)
         F_5_index = math.ceil(0.05 * lc_length)
-        F_95_index = math.ceil(0.95 * lc_length)
+        F_95_index = math.floor(0.95 * lc_length)
 
         F_10_90 = sorted_data[F_90_index] - sorted_data[F_10_index]
         F_5_95 = sorted_data[F_95_index] - sorted_data[F_5_index]
@@ -797,19 +797,20 @@ class PeriodLS(Base):
 
     def __init__(self, ofac=6.):
 
-        self.Data = ['magnitude', 'time']
+        self.Data = ['magnitude', 'time', 'error']
         self.ofac = ofac
 
     def fit(self, data):
 
         magnitude = data[0]
         time = data[1]
+        error = data[2]
 
         global new_time
         global prob
         global period
 
-        fx, fy, nout, jmax, prob = lomb.fasper(time, magnitude, self.ofac, 100.)
+        fx, fy, jmax, prob = lomb.fasper(time, magnitude, error, self.ofac, 100.)
         period = fx[jmax]
         T = 1.0 / period
         new_time = np.mod(time, 2 * T) / (2 * T)
@@ -1025,11 +1026,13 @@ class CAR_mean(Base):
 
 class Freq1_harmonics_amplitude_0(Base):
     def __init__(self):
-        self.Data = ['magnitude', 'time']
+        self.Data = ['magnitude', 'time', 'error']
 
     def fit(self, data):
         magnitude = data[0]
         time = data[1]
+        error = data[2]
+
 
         time = time - np.min(time)
 
@@ -1045,7 +1048,7 @@ class Freq1_harmonics_amplitude_0(Base):
 
         for i in range(3):
 
-            wk1, wk2, nout, jmax, prob = lomb.fasper(time, magnitude, 6., 100.)
+            wk1, wk2, jmax, prob = lomb.fasper(time, magnitude, error, 6., 100.)
 
             fundamental_Freq = wk1[jmax]
 

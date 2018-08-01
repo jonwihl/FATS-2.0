@@ -28,8 +28,13 @@ Reference:
   bib code: 1989ApJ...338..277P 
  
 """  
+from __future__ import division
 from numpy import *  
 from numpy.fft import *  
+import matplotlib.pylab as plt
+import P4J
+
+
   
 def __spread__(y, yy, n, x, m):  
   """ 
@@ -66,7 +71,7 @@ def __spread__(y, yy, n, x, m):
       nden=(nden/(j+1-ilo))*(j-ihi)  
       yy[j] = yy[j] + y*fac/(nden*(x-j))  
   
-def fasper(x,y,ofac,hifac, MACC=4):  
+def fasper(x,y, err, ofac,hifac, MACC=4):
   """ function fasper 
     Given abscissas x (which need not be equally spaced) and ordinates 
     y, and given a desired oversampling factor ofac (a typical value 
@@ -106,14 +111,44 @@ def fasper(x,y,ofac,hifac, MACC=4):
   History: 
     02/23/2009, v1.0, MF 
       Translation of IDL code (orig. Numerical recipies) 
-  """  
+  """
+  my_per = P4J.periodogram(method='MHAOV')
+
+  my_per.set_data(x,y,err)
+  #Course Frequency Evaluation
+  my_per.frequency_grid_evaluation(fmin=0.0, fmax=5.0, fresolution=1e-3)
+  #Finetine with smaller frequency steps
+  my_per.finetune_best_frequencies(fresolution=1e-4, n_local_optima=10)
+  #wk1: frequency grid, wk2: value of the periodgram at particular frequency
+  wk1, wk2 = my_per.get_periodogram()
+
+  pmax = wk2.max()
+  jmax = wk2.argmax()
+  
+  #Significance estimation
+  expy = exp(-wk2)
+  effm = 2.0*(len(wk1))/ofac
+  sig = effm*expy
+  ind = (sig > 0.01).nonzero()
+  sig[ind] = 1.0-(1.0-expy[ind])**effm
+  
+  #Estimate significance of largest peak value
+  expy = exp(-pmax)
+  effm = 2.0*(len(wk1))/ofac
+  prob = effm*expy
+  
+  return wk1,wk2,jmax,prob 
+  
+  
+  """
   #Check dimensions of input arrays  
   n = long(len(x))  
   if n != len(y):  
     print('Incompatible arrays.')
     return  
   
-  nout  = 0.5*ofac*hifac*n  
+  nout = 0.5*ofac*hifac*n  
+  
   nfreqt = long(ofac*hifac*n*MACC)   #Size the FFT as next power  
   nfreq = 64             # of 2 above nfreqt. #in previous version of Python it should be 64L
   
@@ -146,8 +181,8 @@ def fasper(x,y,ofac,hifac, MACC=4):
   
   #Take the Fast Fourier Transforms  
   wk1 = ifft( wk1 )*len(wk1)  
-  wk2 = ifft( wk2 )*len(wk1)  
-  
+  wk2 = ifft( wk2 )*len(wk1)
+
   wk1 = wk1[1:int(nout)+1]  
   wk2 = wk2[1:int(nout)+1]  
   rwk1 = wk1.real  
@@ -188,8 +223,8 @@ def fasper(x,y,ofac,hifac, MACC=4):
   
   if prob > 0.01:   
     prob = 1.0-(1.0-expy)**effm  
-  
-  return wk1,wk2,nout,jmax,prob  
+  """
+   
   
 def getSignificance(wk1, wk2, nout, ofac):  
   """ returns the peak false alarm probabilities 
